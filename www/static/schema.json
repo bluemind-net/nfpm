@@ -1133,7 +1133,8 @@
 				"type": "object",
 				"required": [
 					"type",
-					"script"
+					"script",
+					"conditions"
 				]
 			},
 			"Scripts": {

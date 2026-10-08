@@ -144,6 +144,9 @@ func TestSRPMSpecContents(t *testing.T) {
 	require.Contains(t, spec, `echo "Preinstall"`)
 	require.Contains(t, spec, "%triggerin -p /bin/bash -- target >= 2.0, capability\n")
 	require.Contains(t, spec, `echo "Postinstall"`)
+
+	// Without rpm.doc_dirs, rpmbuild must not flag any file as %doc either.
+	require.Contains(t, spec, "%global __docdir_path %{nil}\n")
 }
 
 func TestSRPMGenerateSpecFileDirectives(t *testing.T) {
@@ -162,6 +165,7 @@ func TestSRPMGenerateSpecFileDirectives(t *testing.T) {
 				{Source: "/usr/bin/fake", Destination: "/usr/bin/fakelink", Type: files.TypeSymlink},
 				{Destination: "/var/lib/spectest", Type: files.TypeDir},
 			},
+			RPM: nfpm.RPM{DocDirs: []string{"/usr/share/doc/", "", "/opt/100%docs"}},
 		},
 	})
 	info = setDefaults(info)
@@ -178,6 +182,7 @@ func TestSRPMGenerateSpecFileDirectives(t *testing.T) {
 	require.Contains(t, spec, "%dir %attr")
 	require.Contains(t, spec, "/var/lib/spectest")
 	require.Contains(t, spec, `%attr(-, root, root) "/usr/bin/fakelink"`)
+	require.Contains(t, spec, "%global __docdir_path /usr/share/doc:/opt/100%%docs\n")
 }
 
 func TestSRPMGenerateSpecLang(t *testing.T) {

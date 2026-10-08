@@ -31,6 +31,10 @@ contents:
     type: symlink
   - dst: /var/lib/foo/state
     type: ghost
+  - src: ./testdata/fake
+    dst: /usr/share/foo-docs/manual
+  - src: ./testdata/fake
+    dst: /usr/share/doc/foo/CHANGES
 scripts:
   postinstall: ./testdata/scripts/srpm-rebuild-postinstall.sh
 rpm:
@@ -56,3 +60,5 @@ rpm:
         - trigger-target
   interpreters:
     postinstall: /bin/bash
+  doc_dirs:
+    - /usr/share/foo-docs

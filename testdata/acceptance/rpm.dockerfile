@@ -270,3 +270,17 @@ RUN test "$(cat /tmp/preinstall-interpreter)" = sh
 RUN test "$(cat /tmp/postinstall-interpreter)" = bash
 RUN rpm -q --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' foo | grep -Ex '/bin/sh 768'
 RUN rpm -q --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' foo | grep -Ex '/bin/bash 1280'
+
+# ---- doc_dirs test ----
+FROM test_base AS docdirs
+RUN rpm -qp -d /tmp/foo.rpm | grep -Fx /usr/share/doc/foo/README
+RUN rpm -qp -d /tmp/foo.rpm | grep -Fx /usr/share/doc/foo/README.link
+RUN rpm -qp --qf '[%{FILEFLAGS} %{FILENAMES}\n]' /tmp/foo.rpm | grep -Fx '3 /usr/share/doc/foo/example.conf'
+RUN ! rpm -qp -d /tmp/foo.rpm | grep -Fx /usr/bin/fake
+# Documentation is skipped by --excludedocs, and installed otherwise.
+RUN rpm -ivh --excludedocs /tmp/foo.rpm
+RUN test -f /usr/bin/fake
+RUN test ! -e /usr/share/doc/foo/README
+RUN rpm -e foo
+RUN rpm -ivh /tmp/foo.rpm
+RUN test -f /usr/share/doc/foo/README

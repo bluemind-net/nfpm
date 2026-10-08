@@ -22,3 +22,6 @@ output.json
 .direnv/
 tmp/
 sponsors.json
+
+# BlueMind fork build output
+bluemind/target/

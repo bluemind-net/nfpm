@@ -54,3 +54,5 @@ rpm:
       script: ./testdata/acceptance/scripts/rpm_trigger_postun.sh
       conditions:
         - trigger-target
+  interpreters:
+    postinstall: /bin/bash

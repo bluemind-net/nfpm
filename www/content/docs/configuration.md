@@ -388,6 +388,19 @@ rpm:
         - another-package >= 2.0
         - another-capability
 
+  # Interpreters of the RPM scriptlets, like `%post -p /bin/bash` in a spec file.
+  # RPM ignores the shebang of the scripts and runs them with /bin/sh by default.
+  # Each scriptlet requires its interpreter, as with rpmbuild.
+  # Debian and Alpine packages run their scripts with their shebang instead.
+  interpreters:
+    preinstall: /bin/bash
+    postinstall: /bin/bash
+    preremove: /bin/bash
+    postremove: /bin/bash
+    pretrans: /bin/bash
+    posttrans: /bin/bash
+    verify: /bin/bash
+
   # RPM specific qualified Requires dependencies.
   requires:
     # Adds `Requires(post): systemd`.

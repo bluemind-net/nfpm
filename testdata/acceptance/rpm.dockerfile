@@ -263,3 +263,10 @@ RUN ! grep -qxE 'un|postun' /tmp/rpm-trigger-proof
 RUN rpm -e trigger-target
 RUN grep -qx un /tmp/rpm-trigger-proof
 RUN grep -qx postun /tmp/rpm-trigger-proof
+
+# ---- interpreters test ----
+FROM min AS interpreters
+RUN test "$(cat /tmp/preinstall-interpreter)" = sh
+RUN test "$(cat /tmp/postinstall-interpreter)" = bash
+RUN rpm -q --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' foo | grep -Ex '/bin/sh 768'
+RUN rpm -q --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' foo | grep -Ex '/bin/bash 1280'

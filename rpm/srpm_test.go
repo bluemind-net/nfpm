@@ -98,6 +98,7 @@ func TestSRPMSpecContents(t *testing.T) {
 			Conditions:  []string{"target >= 2.0", "capability"},
 		},
 	}
+	info.RPM.Interpreters.PostInstall = "/bin/bash"
 
 	var buf bytes.Buffer
 	require.NoError(t, DefaultSRPM.Package(info, &buf))
@@ -136,7 +137,7 @@ func TestSRPMSpecContents(t *testing.T) {
 
 	// Scriptlets are inlined verbatim.
 	require.Contains(t, spec, "%pre\n")
-	require.Contains(t, spec, "%post\n")
+	require.Contains(t, spec, "%post -p /bin/bash\n")
 	require.Contains(t, spec, "%pretrans\n")
 	require.Contains(t, spec, "%posttrans\n")
 	require.Contains(t, spec, "%verifyscript\n")

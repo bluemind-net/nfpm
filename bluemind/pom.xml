@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.bluemind</groupId>
+    <artifactId>nfpm</artifactId>
+    <!-- <nfpm release line>.<upstream main commit>-bm<BlueMind patch level>, see README.md -->
+    <version>2.47.0.1647e1a-bm1</version>
+    <packaging>pom</packaging>
+    <description>nfpm binaries with the BlueMind rpm parity patches, built by build.sh</description>
+
+    <distributionManagement>
+        <repository>
+            <id>bm_releases</id>
+            <url>https://forge.bluemind.net/nexus/content/repositories/releases</url>
+        </repository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-binaries</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>target/dist/nfpm-${project.version}-linux-amd64.tar.gz</file>
+                                    <type>tar.gz</type>
+                                    <classifier>linux-amd64</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>target/dist/nfpm-${project.version}-linux-arm64.tar.gz</file>
+                                    <type>tar.gz</type>
+                                    <classifier>linux-arm64</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>target/dist/nfpm-${project.version}-darwin-amd64.tar.gz</file>
+                                    <type>tar.gz</type>
+                                    <classifier>darwin-amd64</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>target/dist/nfpm-${project.version}-darwin-arm64.tar.gz</file>
+                                    <type>tar.gz</type>
+                                    <classifier>darwin-arm64</classifier>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

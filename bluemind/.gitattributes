@@ -1,0 +1,2 @@
+# Upstream .gitattributes sets "* text eol=lf", which would corrupt binaries.
+*.jar binary

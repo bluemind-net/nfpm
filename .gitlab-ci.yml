@@ -1,0 +1,29 @@
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  image: golang:1.27
+  script:
+    - go test $(go list ./... | grep -v -E "/acceptance|/www")
+
+build:
+  stage: build
+  image: golang:1.27
+  script:
+    - bluemind/build.sh
+  artifacts:
+    paths:
+      - bluemind/target/dist/
+
+deploy:
+  stage: deploy
+  image: docker.bluemind.net/bluemind/bm-build:jdk24
+  needs: [ test, build ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "bluemind/rpm-parity"
+  script:
+    - export JAVA_HOME=/usr/local/lib/jdk25 PATH="/usr/local/lib/jdk25/bin:$PATH"
+    - bluemind/mvnw -B -ntp -nsu -f bluemind/pom.xml deploy

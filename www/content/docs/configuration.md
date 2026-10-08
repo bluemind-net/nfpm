@@ -441,6 +441,13 @@ rpm:
     - /usr/share/doc
     - /usr/share/man
 
+  # Like rpmbuild's script.req, require the interpreter of each executable
+  # script in the package, as read from its #! line: `#!/bin/bash` adds
+  # `Requires: /bin/bash`, and `#!/usr/bin/env /usr/bin/python3` adds both
+  # `/usr/bin/env` and `/usr/bin/python3`. Documentation files are skipped.
+  # Default is false.
+  script_requires: true
+
   # The package is signed if a key_file is set
   signature:
     # PGP secret key (can also be ASCII-armored), the passphrase is taken

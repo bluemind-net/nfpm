@@ -284,3 +284,12 @@ RUN test ! -e /usr/share/doc/foo/README
 RUN rpm -e foo
 RUN rpm -ivh /tmp/foo.rpm
 RUN test -f /usr/share/doc/foo/README
+
+# ---- script requires test ----
+FROM min AS scriptrequires
+RUN rpm -qp --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' /tmp/foo.rpm
+RUN rpm -qp --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' /tmp/foo.rpm | grep -Fx '/bin/bash 16384'
+RUN rpm -qp --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' /tmp/foo.rpm | grep -Fx '/usr/bin/env 16384'
+RUN rpm -qp --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' /tmp/foo.rpm | grep -Fx '/bin/sh 16384'
+# Scripts that are not executable are not scanned.
+RUN ! rpm -qp --requires /tmp/foo.rpm | grep -F perl

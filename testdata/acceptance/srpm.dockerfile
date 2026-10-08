@@ -34,6 +34,8 @@ RUN ! rpm -qp -d /tmp/foo.rpm | grep -Fx /usr/share/doc/foo/CHANGES
 RUN rpm -qp --qf '[%{FILENAMES} %{FILEFLAGS}\n]' /tmp/foo.rpm | grep -E '^/var/lib/foo/state 64$'
 RUN test "$(rpm -qp --provides /tmp/foo.rpm | grep '^foo-tool$')" = "foo-tool"
 RUN rpm -qp --requires /tmp/foo.rpm | grep -E '^bash$'
+# The generated script requires survive the rebuild as explicit requires.
+RUN rpm -qp --requires /tmp/foo.rpm | grep -Fx '/bin/bash'
 RUN rpm -qp --scripts /tmp/foo.rpm | grep -Fx 'postinstall scriptlet (using /bin/bash):'
 # %-sequences in scriptlets must survive the rebuild literally; without the
 # spec escaping, ${host%%.*} would be silently mangled to ${host%.*}.

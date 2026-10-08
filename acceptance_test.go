@@ -206,6 +206,7 @@ func TestRPMSpecific(t *testing.T) {
 		"triggers",
 		"interpreters",
 		"docdirs",
+		"scriptrequires",
 	}
 	for _, name := range testNames {
 		for _, arch := range formatArchs[format] {

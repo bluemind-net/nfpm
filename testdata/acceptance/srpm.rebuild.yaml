@@ -35,6 +35,10 @@ contents:
     dst: /usr/share/foo-docs/manual
   - src: ./testdata/fake
     dst: /usr/share/doc/foo/CHANGES
+  - src: ./testdata/acceptance/scripts/script_requires_bash.sh
+    dst: /usr/libexec/foo/bash-script
+    file_info:
+      mode: 0755
 scripts:
   postinstall: ./testdata/scripts/srpm-rebuild-postinstall.sh
 rpm:
@@ -62,3 +66,4 @@ rpm:
     postinstall: /bin/bash
   doc_dirs:
     - /usr/share/foo-docs
+  script_requires: true

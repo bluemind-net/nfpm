@@ -293,3 +293,11 @@ RUN rpm -qp --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' /tmp/foo.rpm | grep -Fx '/
 RUN rpm -qp --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' /tmp/foo.rpm | grep -Fx '/bin/sh 16384'
 # Scripts that are not executable are not scanned.
 RUN ! rpm -qp --requires /tmp/foo.rpm | grep -F perl
+
+# ---- elfcolors test ----
+FROM min AS elfcolors
+RUN rpm -q --qf '[%{FILECOLORS} %{FILENAMES}\n]' foo
+RUN rpm -q --qf '[%{FILECOLORS} %{FILENAMES}\n]' foo | grep -Fx '1 /usr/lib/foo/elf32'
+RUN rpm -q --qf '[%{FILECOLORS} %{FILENAMES}\n]' foo | grep -Fx '2 /usr/lib/foo/elf64'
+RUN rpm -q --qf '[%{FILECOLORS} %{FILENAMES}\n]' foo | grep -Fx '0 /usr/lib/foo/elf64.so'
+RUN rpm -q --qf '[%{FILECOLORS} %{FILENAMES}\n]' foo | grep -Fx '0 /usr/bin/fake'

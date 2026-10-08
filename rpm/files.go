@@ -1,7 +1,9 @@
 package rpm
 
 import (
+	"io"
 	"io/fs"
+	"os"
 	"strings"
 	"time"
 
@@ -14,6 +16,12 @@ import (
 // tagDirectory is the S_IFDIR mode bit. Kept as a package constant because the
 // unit tests assert directory entries carry it.
 const tagDirectory = 0o40000
+
+// Sizes of the ELF file header (Elf32_Ehdr and Elf64_Ehdr).
+const (
+	elf32HeaderSize = 52
+	elf64HeaderSize = 64
+)
 
 // addContents maps the prepared nfpm contents onto the binary package builder.
 // Regular files are streamed from disk so large payloads are never held in
@@ -96,7 +104,40 @@ func addRegularFile(b rpm.PackageBuilder, content *files.Content, dest string, f
 	if content.FileInfo.Lang != "" {
 		fb.WithLang(content.FileInfo.Lang)
 	}
+	if color := elfColor(content); color != rpm.FileColorNone {
+		fb.WithColor(color)
+	}
 	fb.Add()
+}
+
+// elfColor returns the color rpmbuild gives to ELF files, which rpm uses to
+// let the 32-bit and 64-bit builds of a multilib package install the same
+// paths. Like rpmbuild, it only colors executable files, and ignores the
+// headers libelf rejects: truncated, or with an invalid byte order or version.
+func elfColor(content *files.Content) rpm.FileColor {
+	if content.FileInfo.Mode.Perm()&0o111 == 0 {
+		return rpm.FileColorNone
+	}
+	f, err := os.Open(content.Source)
+	if err != nil {
+		return rpm.FileColorNone
+	}
+	defer f.Close()
+
+	var header [elf64HeaderSize]byte
+	n, _ := io.ReadFull(f, header[:])
+	if n < elf32HeaderSize || string(header[:4]) != "\x7fELF" ||
+		(header[5] != 1 && header[5] != 2) || header[6] != 1 {
+		return rpm.FileColorNone
+	}
+	switch {
+	case header[4] == 1:
+		return rpm.FileColorELF32
+	case header[4] == 2 && n == elf64HeaderSize:
+		return rpm.FileColorELF64
+	default:
+		return rpm.FileColorNone
+	}
 }
 
 func addGhostFile(b rpm.PackageBuilder, content *files.Content, dest string, ftype rpm.FileType) {

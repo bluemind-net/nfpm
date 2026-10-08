@@ -398,6 +398,9 @@ type RPM struct {
 	Signature   RPMSignature `yaml:"signature,omitempty" json:"signature,omitempty" jsonschema:"title=rpm signature"`
 	Packager    string       `yaml:"packager,omitempty" json:"packager,omitempty" jsonschema:"title=organization that actually packaged the software"`
 	Prefixes    []string     `yaml:"prefixes,omitempty" json:"prefixes,omitempty" jsonschema:"title=Prefixes for relocatable packages"`
+	// ScriptRequires mirrors rpmbuild's script.req: executable scripts require
+	// the interpreter of their #! line.
+	ScriptRequires bool `yaml:"script_requires,omitempty" json:"script_requires,omitempty" jsonschema:"title=require the interpreters of executable scripts,default=false"`
 }
 
 // RPMScripts represents scripts only available on RPM packages.

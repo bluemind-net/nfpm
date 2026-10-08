@@ -1,0 +1,22 @@
+name: bluemind-release
+
+on:
+  push:
+    tags:
+      - "*-bm*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+      - run: bluemind/build.sh "$GITHUB_REF_NAME"
+      - run: gh release create "$GITHUB_REF_NAME" bluemind/target/dist/*.tar.gz --verify-tag --title "$GITHUB_REF_NAME" --notes "Linux amd64 build of $GITHUB_SHA."
+        env:
+          GH_TOKEN: ${{ github.token }}

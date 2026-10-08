@@ -369,6 +369,25 @@ rpm:
     # The verify script runs when verifying packages using `rpm -V`.
     verify: ./scripts/verify.sh
 
+  # RPM package triggers.
+  triggers:
+    # The supported types are:
+    # - prein: runs before a package matching the conditions is installed.
+    # - in: runs after a package matching the conditions is installed.
+    # - un: runs before a package matching the conditions is removed.
+    # - postun: runs after a package matching the conditions is removed.
+    - type: in
+      # The script must not be empty.
+      script: ./scripts/trigger-in.sh
+      # Defaults to /bin/sh. The interpreter is added as a requirement.
+      interpreter: /bin/bash
+      # At least one condition is required. Conditions use RPM dependency
+      # syntax, but rich dependencies such as `(foo if bar)` are not allowed.
+      # This will expand any env var you set in the field, e.g. ${PG_VERSION}
+      conditions:
+        - another-package >= 2.0
+        - another-capability
+
   # RPM specific qualified Requires dependencies.
   requires:
     # Adds `Requires(post): systemd`.

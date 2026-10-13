@@ -35,6 +35,18 @@ contents:
     type: symlink
   - dst: /var/lib/foo/state
     type: ghost
+  - src: ./testdata/fake
+    dst: /usr/share/foo-docs/manual
+  - src: ./testdata/fake
+    dst: /usr/share/doc/foo/CHANGES
+  - src: ./testdata/fake
+    dst: /usr/share/foo:v1/manual
+  - src: ./testdata/fake
+    dst: /usr/share/foo/manual
+  - src: ./testdata/fake
+    dst: /usr/share/foo-%{name}/manual
+  - src: ./testdata/fake
+    dst: /usr/share/foo-foo/manual
 scripts:
   postinstall: ./testdata/scripts/srpm-rebuild-postinstall.sh
 rpm:
@@ -60,3 +72,7 @@ rpm:
       script: ./testdata/acceptance/scripts/rpm_trigger_postun.sh
       conditions:
         - trigger-target
+  doc_dirs:
+    - /usr/share/foo-docs
+    - /usr/share/foo:v1
+    - /usr/share/foo-%{name}

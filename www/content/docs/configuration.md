@@ -438,6 +438,13 @@ rpm:
   prefixes:
     - /usr/bin
 
+  # Require the interpreter of each executable script in the package, read
+  # from its #! line: `#!/bin/bash` adds `Requires: /bin/bash`, and
+  # `#!/usr/bin/env /usr/bin/python3` adds `/usr/bin/env` and
+  # `/usr/bin/python3`. Documentation files are skipped.
+  # Default is false.
+  script_requires: true
+
   # Files below these directories are flagged as documentation (%doc).
   # Directories themselves are not. Documentation is skipped when installing
   # with --excludedocs.

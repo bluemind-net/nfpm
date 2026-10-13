@@ -396,19 +396,20 @@ type ArchLinuxScripts struct {
 
 // RPM is custom configs that are only available on RPM packages.
 type RPM struct {
-	Arch         string          `yaml:"arch,omitempty" json:"arch,omitempty" jsonschema:"title=architecture in rpm nomenclature"`
-	BuildHost    string          `yaml:"buildhost,omitempty" json:"buildhost,omitempty" jsonschema:"title=host name of the build environment, default=os.Hostname()"`
-	Scripts      RPMScripts      `yaml:"scripts,omitempty" json:"scripts,omitempty" jsonschema:"title=rpm-specific scripts"`
-	Interpreters RPMInterpreters `yaml:"interpreters,omitempty" json:"interpreters,omitempty" jsonschema:"title=rpm scriptlet interpreters"`
-	Triggers     []RPMTrigger    `yaml:"triggers,omitempty" json:"triggers,omitempty" jsonschema:"title=rpm triggers"`
-	Requires     RPMRequires     `yaml:"requires,omitempty" json:"requires,omitempty" jsonschema:"title=rpm-specific requires"`
-	Group        string          `yaml:"group,omitempty" json:"group,omitempty" jsonschema:"title=package group,example=Unspecified"`
-	Summary      string          `yaml:"summary,omitempty" json:"summary,omitempty" jsonschema:"title=package summary"`
-	Compression  string          `yaml:"compression,omitempty" json:"compression,omitempty" jsonschema:"title=compression algorithm to be used,enum=gzip,enum=lzma,enum=xz,enum=zstd,default=gzip:-1"`
-	Signature    RPMSignature    `yaml:"signature,omitempty" json:"signature,omitempty" jsonschema:"title=rpm signature"`
-	Packager     string          `yaml:"packager,omitempty" json:"packager,omitempty" jsonschema:"title=organization that actually packaged the software"`
-	Prefixes     []string        `yaml:"prefixes,omitempty" json:"prefixes,omitempty" jsonschema:"title=Prefixes for relocatable packages"`
-	DocDirs      []string        `yaml:"doc_dirs,omitempty" json:"doc_dirs,omitempty" jsonschema:"title=directories whose files are flagged as documentation,example=/usr/share/doc"`
+	Arch           string          `yaml:"arch,omitempty" json:"arch,omitempty" jsonschema:"title=architecture in rpm nomenclature"`
+	BuildHost      string          `yaml:"buildhost,omitempty" json:"buildhost,omitempty" jsonschema:"title=host name of the build environment, default=os.Hostname()"`
+	Scripts        RPMScripts      `yaml:"scripts,omitempty" json:"scripts,omitempty" jsonschema:"title=rpm-specific scripts"`
+	Interpreters   RPMInterpreters `yaml:"interpreters,omitempty" json:"interpreters,omitempty" jsonschema:"title=rpm scriptlet interpreters"`
+	Triggers       []RPMTrigger    `yaml:"triggers,omitempty" json:"triggers,omitempty" jsonschema:"title=rpm triggers"`
+	Requires       RPMRequires     `yaml:"requires,omitempty" json:"requires,omitempty" jsonschema:"title=rpm-specific requires"`
+	Group          string          `yaml:"group,omitempty" json:"group,omitempty" jsonschema:"title=package group,example=Unspecified"`
+	Summary        string          `yaml:"summary,omitempty" json:"summary,omitempty" jsonschema:"title=package summary"`
+	Compression    string          `yaml:"compression,omitempty" json:"compression,omitempty" jsonschema:"title=compression algorithm to be used,enum=gzip,enum=lzma,enum=xz,enum=zstd,default=gzip:-1"`
+	Signature      RPMSignature    `yaml:"signature,omitempty" json:"signature,omitempty" jsonschema:"title=rpm signature"`
+	Packager       string          `yaml:"packager,omitempty" json:"packager,omitempty" jsonschema:"title=organization that actually packaged the software"`
+	Prefixes       []string        `yaml:"prefixes,omitempty" json:"prefixes,omitempty" jsonschema:"title=Prefixes for relocatable packages"`
+	ScriptRequires bool            `yaml:"script_requires,omitempty" json:"script_requires,omitempty" jsonschema:"title=require the interpreters of executable scripts,default=false"`
+	DocDirs        []string        `yaml:"doc_dirs,omitempty" json:"doc_dirs,omitempty" jsonschema:"title=directories whose files are flagged as documentation,example=/usr/share/doc"`
 }
 
 // RPMScripts represents scripts only available on RPM packages.

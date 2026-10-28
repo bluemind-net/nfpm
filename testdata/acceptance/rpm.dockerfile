@@ -311,3 +311,11 @@ RUN rm /tmp/rpm-trigger-proof
 RUN rpm -ivh /tmp/rpmbuild/RPMS/noarch/trigger-target-2.0-1.noarch.rpm
 RUN grep -qx in-v2 /tmp/rpm-trigger-proof
 RUN ! grep -qx in /tmp/rpm-trigger-proof
+
+# ---- interpreters test ----
+FROM min AS interpreters
+RUN test "$(cat /tmp/preinstall-interpreter)" = sh
+RUN test "$(cat /tmp/postinstall-interpreter)" = bash
+RUN test "$(cat /tmp/pretrans-interpreter)" = lua
+RUN rpm -q --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' foo | grep -Ex '/bin/sh 768'
+RUN rpm -q --qf '[%{REQUIRENAME} %{REQUIREFLAGS}\n]' foo | grep -Ex '/bin/bash 1280'

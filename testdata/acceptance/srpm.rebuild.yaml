@@ -39,6 +39,18 @@ contents:
     dst: /usr/libexec/foo/bash-script
     file_info:
       mode: 0755
+  - src: ./testdata/fake
+    dst: /usr/share/foo-docs/manual
+  - src: ./testdata/fake
+    dst: /usr/share/doc/foo/CHANGES
+  - src: ./testdata/fake
+    dst: /usr/share/foo:v1/manual
+  - src: ./testdata/fake
+    dst: /usr/share/foo/manual
+  - src: ./testdata/fake
+    dst: /usr/share/foo-%{name}/manual
+  - src: ./testdata/fake
+    dst: /usr/share/foo-foo/manual
 scripts:
   postinstall: ./testdata/scripts/srpm-rebuild-postinstall.sh
   preremove: ./testdata/scripts/srpm-rebuild-preremove.sh
@@ -74,3 +86,7 @@ rpm:
     postinstall: /bin/bash
     pretrans: <lua>
     preremove: '/opt/foo/"sh"\bin'
+  doc_dirs:
+    - /usr/share/foo-docs
+    - /usr/share/foo:v1
+    - /usr/share/foo-%{name}

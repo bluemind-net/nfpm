@@ -215,6 +215,12 @@ func (c *Config) expandEnvVarsContents(contents files.Contents) files.Contents {
 	return contents
 }
 
+func (c *Config) expandEnvVarsRPMTriggers(triggers []RPMTrigger) {
+	for i := range triggers {
+		triggers[i].Conditions = c.expandEnvVarsStringSlice(triggers[i].Conditions)
+	}
+}
+
 func (c *Config) expandEnvVars() {
 	// Version related fields
 	c.Release = os.Expand(c.Release, c.envMappingFunc)
@@ -233,6 +239,7 @@ func (c *Config) expandEnvVars() {
 		c.Overrides[or].Provides = c.expandEnvVarsStringSlice(c.Overrides[or].Provides)
 		c.Overrides[or].Suggests = c.expandEnvVarsStringSlice(c.Overrides[or].Suggests)
 		c.Overrides[or].RPM.Requires.Post = c.expandEnvVarsStringSlice(c.Overrides[or].RPM.Requires.Post)
+		c.expandEnvVarsRPMTriggers(c.Overrides[or].RPM.Triggers)
 		c.Overrides[or].Contents = c.expandEnvVarsContents(c.Overrides[or].Contents)
 	}
 	c.Conflicts = c.expandEnvVarsStringSlice(c.Conflicts)
@@ -242,6 +249,7 @@ func (c *Config) expandEnvVars() {
 	c.Provides = c.expandEnvVarsStringSlice(c.Provides)
 	c.Suggests = c.expandEnvVarsStringSlice(c.Suggests)
 	c.RPM.Requires.Post = c.expandEnvVarsStringSlice(c.RPM.Requires.Post)
+	c.expandEnvVarsRPMTriggers(c.RPM.Triggers)
 	c.Contents = c.expandEnvVarsContents(c.Contents)
 
 	// Basic metadata fields
@@ -469,6 +477,7 @@ type RPM struct {
 	BuildHost      string          `yaml:"buildhost,omitempty" json:"buildhost,omitempty" jsonschema:"title=host name of the build environment, default=os.Hostname()"`
 	Scripts        RPMScripts      `yaml:"scripts,omitempty" json:"scripts,omitempty" jsonschema:"title=rpm-specific scripts"`
 	Interpreters   RPMInterpreters `yaml:"interpreters,omitempty" json:"interpreters,omitempty" jsonschema:"title=rpm scriptlet interpreters"`
+	Triggers       []RPMTrigger    `yaml:"triggers,omitempty" json:"triggers,omitempty" jsonschema:"title=rpm triggers"`
 	Requires       RPMRequires     `yaml:"requires,omitempty" json:"requires,omitempty" jsonschema:"title=rpm-specific requires"`
 	Group          string          `yaml:"group,omitempty" json:"group,omitempty" jsonschema:"title=package group,example=Unspecified"`
 	Summary        string          `yaml:"summary,omitempty" json:"summary,omitempty" jsonschema:"title=package summary"`
@@ -495,6 +504,14 @@ type RPMInterpreters struct {
 	PreTrans    string `yaml:"pretrans,omitempty" json:"pretrans,omitempty" jsonschema:"title=pretrans interpreter,default=/bin/sh"`
 	PostTrans   string `yaml:"posttrans,omitempty" json:"posttrans,omitempty" jsonschema:"title=posttrans interpreter,default=/bin/sh"`
 	Verify      string `yaml:"verify,omitempty" json:"verify,omitempty" jsonschema:"title=verify interpreter,default=/bin/sh"`
+}
+
+// RPMTrigger represents an RPM package trigger.
+type RPMTrigger struct {
+	Type        string   `yaml:"type" json:"type" jsonschema:"title=trigger type,enum=prein,enum=in,enum=un,enum=postun"`
+	Script      string   `yaml:"script" json:"script" jsonschema:"title=trigger script"`
+	Interpreter string   `yaml:"interpreter,omitempty" json:"interpreter,omitempty" jsonschema:"title=trigger script interpreter,default=/bin/sh"`
+	Conditions  []string `yaml:"conditions" json:"conditions" jsonschema:"title=trigger conditions"`
 }
 
 // RPMRequires represents qualified RPM Requires dependencies.

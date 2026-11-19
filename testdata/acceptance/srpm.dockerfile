@@ -42,6 +42,13 @@ RUN rpm -qp --requires /tmp/foo.rpm | grep -Fx 'rpmlib(BuiltinLuaScripts) <= 4.2
 RUN rpm -qp --scripts /tmp/foo.rpm | grep -F '${host%%.*}'
 # rpmbuild colors ELF files on rebuild, as nfpm does in the binary RPM.
 RUN rpm -qp --qf '[%{FILECOLORS} %{FILENAMES}\n]' /tmp/foo.rpm | grep -Fx '2 /usr/lib/foo/elf64'
+# The %trigger sections of the generated spec must survive the rebuild.
+RUN rpm -qp --triggers /tmp/foo.rpm | grep -Fx 'triggerprein scriptlet (using /bin/sh) -- trigger-target >= 1.0'
+RUN rpm -qp --triggers /tmp/foo.rpm | grep -Fx 'triggerin scriptlet (using /bin/bash) -- trigger-target < 2.0'
+RUN rpm -qp --triggers /tmp/foo.rpm | grep -Fx 'triggerin scriptlet (using /bin/sh) -- trigger-target >= 2.0'
+RUN rpm -qp --triggers /tmp/foo.rpm | grep -Fx 'triggerun scriptlet (using /bin/sh) -- trigger-target'
+RUN rpm -qp --triggers /tmp/foo.rpm | grep -Fx 'triggerpostun scriptlet (using /bin/sh) -- trigger-target'
+RUN rpm -qp --triggers /tmp/foo.rpm | grep -Fx 'echo postun >> /tmp/rpm-trigger-proof'
 
 # Install it and verify the payload landed on disk.
 # The custom preremove interpreter is a symlink to /bin/sh that no package

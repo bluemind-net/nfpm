@@ -26,13 +26,19 @@ import (
 )
 
 const (
-	tagProvideName    = 1047
-	tagRequireFlags   = 1048
-	tagRequireName    = 1049
-	tagRequireVersion = 1050
-	tagFileLangs      = 1097
-	tagProvideFlags   = 1112
-	tagProvideVersion = 1113
+	tagProvideName       = 1047
+	tagRequireFlags      = 1048
+	tagRequireName       = 1049
+	tagRequireVersion    = 1050
+	tagTriggerScripts    = 1065
+	tagTriggerName       = 1066
+	tagTriggerVersion    = 1067
+	tagTriggerFlags      = 1068
+	tagTriggerIndex      = 1069
+	tagTriggerScriptProg = 1092
+	tagFileLangs         = 1097
+	tagProvideFlags      = 1112
+	tagProvideVersion    = 1113
 )
 
 func exampleInfo() *nfpm.Info {
@@ -165,6 +171,110 @@ func TestRPM(t *testing.T) {
 	description, err := rpm.Header.GetString(rpmutils.DESCRIPTION)
 	require.NoError(t, err)
 	require.Equal(t, "Foo does things", description)
+}
+
+func TestRPMTriggers(t *testing.T) {
+	dir := t.TempDir()
+	scripts := make([]string, 4)
+
+	for i := range scripts {
+		scripts[i] = filepath.Join(dir, fmt.Sprintf("trigger-%d.sh", i))
+		require.NoError(t, os.WriteFile(scripts[i], []byte(fmt.Sprintf("echo %d\n", i)), 0o755))
+	}
+
+	info := exampleInfo()
+	info.RPM.Triggers = []nfpm.RPMTrigger{
+		{Type: "prein", Script: scripts[0], Interpreter: "/bin/bash", Conditions: []string{"target >= 2.0", "capability"}},
+		{Type: "in", Script: scripts[1], Conditions: []string{"target"}},
+		{Type: "un", Script: scripts[2], Conditions: []string{"target"}},
+		{Type: "postun", Script: scripts[3], Conditions: []string{"target"}},
+	}
+
+	var buf bytes.Buffer
+	require.NoError(t, DefaultRPM.Package(info, &buf))
+
+	pkg, err := rpmutils.ReadRpm(&buf)
+	require.NoError(t, err)
+
+	names, err := pkg.Header.GetStrings(tagTriggerName)
+	require.NoError(t, err)
+	require.Equal(t, []string{"target", "capability", "target", "target", "target"}, names)
+
+	versions, err := pkg.Header.GetStrings(tagTriggerVersion)
+	require.NoError(t, err)
+	require.Equal(t, []string{"2.0", "", "", "", ""}, versions)
+
+	triggerScripts, err := pkg.Header.GetStrings(tagTriggerScripts)
+	require.NoError(t, err)
+	require.Equal(t, []string{"echo 0\n", "echo 1\n", "echo 2\n", "echo 3\n"}, triggerScripts)
+
+	interpreters, err := pkg.Header.GetStrings(tagTriggerScriptProg)
+	require.NoError(t, err)
+	require.Equal(t, []string{"/bin/bash", "/bin/sh", "/bin/sh", "/bin/sh"}, interpreters)
+
+	flagsRaw, err := pkg.Header.Get(tagTriggerFlags)
+	require.NoError(t, err)
+	flags, ok := flagsRaw.([]uint32)
+	require.True(t, ok)
+	require.Equal(t, []uint32{
+		(1 << 25) | 4 | 8, // prein, condition: target >= 2.0
+		1 << 25,           // prein, condition: capability
+		1 << 16,           // in
+		1 << 17,           // un
+		1 << 18,           // postun
+	}, flags)
+
+	indexesRaw, err := pkg.Header.Get(tagTriggerIndex)
+	require.NoError(t, err)
+	indexes, ok := indexesRaw.([]uint32)
+	require.True(t, ok)
+	require.Equal(t, []uint32{0, 0, 1, 2, 3}, indexes)
+
+	requireNames, err := pkg.Header.GetStrings(tagRequireName)
+	require.NoError(t, err)
+	requireVersions, err := pkg.Header.GetStrings(tagRequireVersion)
+	require.NoError(t, err)
+	requireFlagsRaw, err := pkg.Header.Get(tagRequireFlags)
+	require.NoError(t, err)
+	requireFlags, ok := requireFlagsRaw.([]uint32)
+	require.True(t, ok)
+	const rpmSenseInterp = 1 << 8
+	requireRPMRequire(t, requireNames, requireVersions, requireFlags, "/bin/bash", "", rpmSenseInterp)
+	requireRPMRequire(t, requireNames, requireVersions, requireFlags, "/bin/sh", "", rpmSenseInterp)
+}
+
+func TestRPMTriggersDisjointRanges(t *testing.T) {
+	info := exampleInfo()
+	info.RPM.Triggers = []nfpm.RPMTrigger{
+		{Type: "in", Script: "../testdata/scripts/preinstall.sh", Conditions: []string{"target < 2.0"}},
+		{Type: "in", Script: "../testdata/scripts/postinstall.sh", Conditions: []string{"target >= 2.0"}},
+	}
+
+	var buf bytes.Buffer
+	require.NoError(t, DefaultRPM.Package(info, &buf))
+
+	pkg, err := rpmutils.ReadRpm(&buf)
+	require.NoError(t, err)
+
+	versions, err := pkg.Header.GetStrings(tagTriggerVersion)
+	require.NoError(t, err)
+	require.Equal(t, []string{"2.0", "2.0"}, versions)
+
+	flagsRaw, err := pkg.Header.Get(tagTriggerFlags)
+	require.NoError(t, err)
+	require.Equal(t, []uint32{(1 << 16) | 2, (1 << 16) | 4 | 8}, flagsRaw)
+
+	indexesRaw, err := pkg.Header.Get(tagTriggerIndex)
+	require.NoError(t, err)
+	require.Equal(t, []uint32{0, 1}, indexesRaw)
+
+	buf.Reset()
+	require.NoError(t, DefaultSRPM.Package(info, &buf))
+
+	spec, err := extractFileFromRpm(buf.Bytes(), "/foo.spec")
+	require.NoError(t, err)
+	require.Contains(t, string(spec), "%triggerin -- target < 2.0\n")
+	require.Contains(t, string(spec), "%triggerin -- target >= 2.0\n")
 }
 
 func TestRPMPostRequires(t *testing.T) {

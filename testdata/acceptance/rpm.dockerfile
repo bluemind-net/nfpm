@@ -319,3 +319,17 @@ RUN rm /tmp/rpm-trigger-proof
 RUN rpm --nosignature -ivh /tmp/rpmbuild/RPMS/noarch/trigger-target-2.0-1.noarch.rpm
 RUN grep -qx in-v2 /tmp/rpm-trigger-proof
 RUN ! grep -qx in /tmp/rpm-trigger-proof
+
+# ---- doc_dirs test ----
+FROM test_base AS docdirs
+RUN rpm -qp -d /tmp/foo.rpm | grep -Fx /usr/share/doc/foo/README
+RUN rpm -qp -d /tmp/foo.rpm | grep -Fx /usr/share/doc/foo/README.link
+RUN rpm -qp --qf '[%{FILEFLAGS} %{FILENAMES}\n]' /tmp/foo.rpm | grep -Fx '3 /usr/share/doc/foo/example.conf'
+RUN ! rpm -qp -d /tmp/foo.rpm | grep -Fx /usr/bin/fake
+# Documentation is skipped by --excludedocs, and installed otherwise.
+RUN rpm -ivh --excludedocs /tmp/foo.rpm
+RUN test -f /usr/bin/fake
+RUN test ! -e /usr/share/doc/foo/README
+RUN rpm -e foo
+RUN rpm -ivh /tmp/foo.rpm
+RUN test -f /usr/share/doc/foo/README

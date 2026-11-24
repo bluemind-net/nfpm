@@ -105,6 +105,12 @@ func generateSpec(info *nfpm.Info, sourceName string) (string, error) {
 		writeScriptSection(&b, sc.section, sc.interpreter, sc.body)
 	}
 
+	triggers, err := readTriggers(info)
+	if err != nil {
+		return "", err
+	}
+	writeTriggerSections(&b, triggers)
+
 	b.WriteString("\n%files\n")
 	writeFilesSection(&b, info)
 
@@ -122,15 +128,32 @@ func writeScriptSection(b *strings.Builder, section, interpreter, body string) {
 		return
 	}
 	body = escapeSpecText(body)
-	fmt.Fprintf(b, "\n%%%s", section)
-	if interpreter != defaultInterpreter {
-		// rpmbuild parses the section line into arguments, then parses the -p
-		// value again, so the interpreter is escaped once for each pass.
-		fmt.Fprintf(b, " -p %s", escapeSpecText(escapeSpecArg(escapeSpecArg(interpreter))))
-	}
-	fmt.Fprintf(b, "\n%s", body)
+	fmt.Fprintf(b, "\n%%%s%s\n%s", section, specInterpreterOption(interpreter), body)
 	if !strings.HasSuffix(body, "\n") {
 		b.WriteString("\n")
+	}
+}
+
+func specInterpreterOption(interpreter string) string {
+	if interpreter == defaultInterpreter {
+		return ""
+	}
+	// rpmbuild parses the section line into arguments, then parses the -p
+	// value again, so the interpreter is escaped once for each pass.
+	return " -p " + escapeSpecText(escapeSpecArg(escapeSpecArg(interpreter)))
+}
+
+func writeTriggerSections(b *strings.Builder, triggers []trigger) {
+	for _, trigger := range triggers {
+		conditions := make([]string, 0, len(trigger.conditions))
+		for _, condition := range trigger.conditions {
+			conditions = append(conditions, escapeSpecText(condition.String()))
+		}
+
+		fmt.Fprintf(b, "\n%%trigger%s%s -- %s\n%s", trigger.directive, specInterpreterOption(trigger.interpreter), strings.Join(conditions, ", "), escapeSpecText(trigger.script))
+		if !strings.HasSuffix(trigger.script, "\n") {
+			b.WriteString("\n")
+		}
 	}
 }
 

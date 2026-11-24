@@ -1263,6 +1263,13 @@
 						"$ref": "#/$defs/RPMInterpreters",
 						"title": "rpm scriptlet interpreters"
 					},
+					"triggers": {
+						"items": {
+							"$ref": "#/$defs/RPMTrigger"
+						},
+						"type": "array",
+						"title": "rpm triggers"
+					},
 					"requires": {
 						"$ref": "#/$defs/RPMRequires",
 						"title": "rpm-specific requires"
@@ -1407,6 +1414,43 @@
 				},
 				"additionalProperties": false,
 				"type": "object"
+			},
+			"RPMTrigger": {
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"prein",
+							"in",
+							"un",
+							"postun"
+						],
+						"title": "trigger type"
+					},
+					"script": {
+						"type": "string",
+						"title": "trigger script"
+					},
+					"interpreter": {
+						"type": "string",
+						"title": "trigger script interpreter",
+						"default": "/bin/sh"
+					},
+					"conditions": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "trigger conditions"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"type",
+					"script",
+					"conditions"
+				]
 			},
 			"Scripts": {
 				"properties": {
